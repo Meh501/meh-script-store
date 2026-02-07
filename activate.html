@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفعيل السكربت</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; min-height: 100vh; text-align: center; background: linear-gradient(to right, #004e92, #000428); color: white; }
+        .nav { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .nav a { margin: 0 15px; color: white; text-decoration: none; font-weight: bold; }
+        .box { background: white; padding: 40px; border-radius: 20px; display: inline-block; margin-top: 50px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); width: 85%; max-width: 400px; color: black; }
+        input { padding: 15px; border: 2px dashed #007bff; border-radius: 10px; width: 85%; text-align: center; font-size: 20px; margin-bottom: 20px; outline: none; }
+        button { padding: 15px 40px; background: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 85%; }
+        #dl { display: none; margin-top: 25px; background: #e9f7ef; padding: 25px; border-radius: 15px; border: 2px solid #28a745; }
+        #warning-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 550px; text-align: right; border-top: 10px solid #ff4d4d; color: black; }
+        #understand-btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; cursor: not-allowed; font-weight: bold; opacity: 0.5; margin-top: 25px; font-size: 18px; }
+        #understand-btn.active { cursor: pointer; opacity: 1; background: #28a745; }
+    </style>
+</head>
+<body>
+    <div id="warning-modal">
+        <div class="modal-content">
+            <h3 style="color:#ff4d4d; text-align:center;">⚠️ تنبيه هام:</h3>
+            <div style="font-weight:bold; line-height:1.8;">
+                في حال تم استخدام نفس الكود من قبل شخص آخر أو على جهاز آخر، سيتم سحب الكود فورًا من قاعدة البيانات (الداتا) وإيقافه نهائيًا دون أي إشعار مسبق.
+                <br><br>❌ لا يوجد استرجاع للمبلغ <br>❌ لا يحق إعادة التفعيل أو الشراء مرة أخرى <br>🔒 الكود مخصص لاستخدام واحد فقط وعلى جهاز واحد
+            </div>
+            <button id="understand-btn" disabled>فهمت (10)</button>
+        </div>
+    </div>
+    <div class="nav" id="menu">
+        <a href="updates.html">📢 التحديثات</a>
+        <a href="orders.html">📦 طلباتي</a>
+        <a href="reviews.html">⭐ التقييمات</a>
+        <a href="index.html" onclick="localStorage.clear(); sessionStorage.clear();">🚪 خروج</a>
+    </div>
+    <div class="box">
+        <h2>تفعيل المنتج</h2>
+        <input type="text" id="c" placeholder="أدخل كود التفعيل">
+        <button onclick="act()">تفعيل وإظهار الرابط</button>
+        <div id="dl">
+            <p style="color: #28a745; font-weight: bold; font-size: 20px;">✅ تم التفعيل بنجاح!</p>
+            <a id="link" href="#" style="background: #28a745; color: white; padding: 15px; text-decoration: none; border-radius: 10px; display: inline-block; font-weight: bold;" target="_blank">📥 تحميل السكربت</a>
+        </div>
+    </div>
+    <script>
+        const user = localStorage.getItem('user');
+        if (user === 'Meh') document.getElementById('menu').innerHTML = `<a href="admin.html" style="color: #d4af37; border: 1px solid #d4af37; padding: 5px 10px; border-radius: 8px;">👑 لوحة المالك</a>` + document.getElementById('menu').innerHTML;
+        if (sessionStorage.getItem('alertShown')) document.getElementById('warning-modal').style.display = 'none';
+        let timeLeft = 10;
+        const btn = document.getElementById('understand-btn');
+        const timer = setInterval(() => { timeLeft--; if (timeLeft > 0) btn.innerText = `فهمت (${timeLeft})`; else { clearInterval(timer); btn.innerText = "فهمت ووافقت"; btn.disabled = false; btn.classList.add('active'); } }, 1000);
+        btn.onclick = () => { document.getElementById('warning-modal').style.display = 'none'; sessionStorage.setItem('alertShown', 'true'); };
+        
+        async function act() {
+            const res = await fetch('/activate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code: document.getElementById('c').value, username: user }) });
+            const data = await res.json();
+            if(data.success) {
+                Swal.fire({ icon: 'success', title: 'تم التفعيل', text: 'رابط التحميل متاح الآن بالأسفل' });
+                document.getElementById('dl').style.display = 'block';
+                document.getElementById('link').href = data.link;
+                localStorage.setItem('bought', 'true');
+            } else {
+                Swal.fire({ icon: 'error', title: 'خطأ', text: data.message });
+            }
+        }
+    </script>
+</body>
+</html>

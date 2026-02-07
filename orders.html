@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>طلباتي</title>
+    <style>
+        body { margin:0; font-family:sans-serif; min-height:100vh; background: linear-gradient(to bottom, #1e3c72, #2a5298); color:white; }
+        .nav { background:rgba(0,0,0,0.3); padding:15px; text-align:center; }
+        .nav a { margin:0 15px; color:white; text-decoration:none; font-weight:bold; }
+        .container { max-width:800px; margin:40px auto; background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); padding:25px; border-radius:15px; }
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th, td { padding:15px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:center; }
+        .btn-dl { background:#28a745; color:white; padding:8px 15px; text-decoration:none; border-radius:5px; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <div class="nav"><a href="activate.html">🏠 العودة</a></div>
+    <div class="container">
+        <h2 style="text-align:center;">📦 سجل مشترياتي</h2>
+        <table id="tbl">
+            <thead><tr><th>المنتج</th><th>التاريخ</th><th>الرابط</th></tr></thead>
+            <tbody id="list"></tbody>
+        </table>
+    </div>
+    <script>
+        async function load() {
+            const res = await fetch('/get-my-orders', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:localStorage.getItem('user')}) });
+            const orders = await res.json();
+            document.getElementById('list').innerHTML = orders.map(o => `<tr><td><b>${o.item_name}</b></td><td>${o.date}</td><td><a href="${o.download_link}" class="btn-dl" target="_blank">📥 تحميل</a></td></tr>`).join('');
+        }
+        load();
+    </script>
+</body>
+</html>

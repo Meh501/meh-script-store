@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>عضوية جديدة</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { margin:0; height:100vh; display:flex; justify-content:center; align-items:center; font-family:sans-serif; background: #ffffff; overflow: hidden; }
+        body::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, #007bff, #ffffff); animation: waveRotate 20s linear infinite; z-index: -1; }
+        @keyframes waveRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .box { background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .hint { font-size: 11px; color: #666; text-align: right; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>عضوية جديدة</h2>
+        <div class="hint">اليوزر 3 حروف فأكثر</div>
+        <input type="text" id="u" placeholder="اليوزر نيم">
+        <div class="hint">الباسورد 8 حروف فأكثر</div>
+        <input type="password" id="p" placeholder="الباسورد">
+        <button onclick="reg()">تسجيل الآن</button>
+        <p><a href="index.html" style="color:#007bff; text-decoration:none; font-weight:bold;">رجوع للدخول</a></p>
+    </div>
+    <script>
+        async function reg() {
+            const uVal = document.getElementById('u').value;
+            const pVal = document.getElementById('p').value;
+
+            if (uVal.length < 3) return Swal.fire({ icon: 'warning', title: 'اليوزر قصير', text: 'يجب أن يكون 3 حروف على الأقل' });
+            if (pVal.length < 8) return Swal.fire({ icon: 'warning', title: 'الباسورد ضعيف', text: 'يجب أن يكون 8 حروف على الأقل' });
+
+            const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: uVal, password: pVal }) });
+            const data = await res.json();
+            if(data.success) {
+                Swal.fire({ icon: 'success', title: 'تم بنجاح', text: data.message }).then(() => window.location.href = "index.html");
+            } else {
+                Swal.fire({ icon: 'error', title: 'عذراً', text: data.message });
+            }
+        }
+    </script>
+</body>
+</html>

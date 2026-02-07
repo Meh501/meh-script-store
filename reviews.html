@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>التقييمات</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family:sans-serif; background: linear-gradient(to right, #243b55, #141e30); padding:20px; color:white; min-height: 100vh; }
+        .container { max-width:600px; margin:auto; background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); padding:20px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); }
+        .rev { border-bottom:1px solid rgba(255,255,255,0.1); padding:15px 0; position:relative; }
+        .owner-tag { color:#d4af37; font-weight:bold; background:rgba(212,175,55,0.1); padding:2px 8px; border-radius:5px; border:1px solid #d4af37; font-size:13px; }
+        .del-btn { position:absolute; left:0; color:#ff4d4d; cursor:pointer; font-size:12px; border:1px solid #ff4d4d; padding:2px 5px; border-radius:4px; }
+        textarea { width:100%; padding:12px; border-radius:8px; border:none; margin-top:20px; background:white; color: black; outline: none; box-sizing: border-box;}
+        .btn { background:#007bff; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; margin-top:10px; width:100%; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align:center;">⭐ تقييمات العملاء</h2>
+        <div id="list"></div>
+        <hr>
+        <h3>أضف تقييمك</h3>
+        <textarea id="msg" placeholder="اكتب رأيك هنا..."></textarea>
+        <button class="btn" onclick="add()">نشر التقييم</button>
+        <center><br><a href="activate.html" style="color:#00d4ff; text-decoration:none; font-weight: bold;">⬅️ العودة</a></center>
+    </div>
+    <script>
+        const currentUser = localStorage.getItem('user');
+        async function load() {
+            const res = await fetch('/get-reviews');
+            const data = await res.json();
+            document.getElementById('list').innerHTML = data.map(r => `
+                <div class="rev">
+                    ${currentUser === 'Meh' ? `<span class="del-btn" onclick="del(${r.id})">حذف</span>` : ''}
+                    <b>${r.user}</b> ${r.user === 'Meh' ? '<span class="owner-tag">المالك 👑</span>' : ''}
+                    <p style="margin-top:10px;">${r.comment}</p>
+                </div>`).join('');
+        }
+        async function add() {
+            if(!localStorage.getItem('bought') && currentUser !== 'Meh') return Swal.fire({ icon: 'info', title: 'تنبيه', text: 'يجب الشراء أولاً لتتمكن من التقييم' });
+            await fetch('/add-review', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:currentUser, comment:document.getElementById('msg').value}) });
+            document.getElementById('msg').value=""; load();
+            Swal.fire({ icon: 'success', title: 'تم النشر', timer: 1500, showConfirmButton: false });
+        }
+        async function del(id) {
+            Swal.fire({ title: 'هل أنت متأكد؟', text: "سيتم حذف التقييم نهائياً!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ff4d4d', cancelButtonColor: '#6c757d', confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء' }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await fetch('/delete-review', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, adminUser: currentUser})});
+                    load();
+                    Swal.fire('تم الحذف!', 'تم حذف التقييم بنجاح.', 'success');
+                }
+            });
+        }
+        load();
+    </script>
+</body>
+</html>

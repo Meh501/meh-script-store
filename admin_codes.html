@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة الأكواد 🔑</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; min-height: 100vh; background: #000; color: white; padding: 20px; }
+        .nav-back { text-align: center; margin-bottom: 20px; }
+        .nav-back a { color: #d4af37; text-decoration: none; border: 1px solid #d4af37; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
+        .container { max-width: 900px; margin: auto; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid #d4af37; }
+        h1 { text-align: center; color: #d4af37; text-shadow: 0 0 10px #d4af37; }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; font-weight: bold; }
+        .stat-box { padding: 10px 20px; border-radius: 10px; background: rgba(255,255,255,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; }
+        th { background: #d4af37; color: black; }
+        /* الألوان المطلوبة */
+        .status-active { color: #00ff00; font-weight: bold; }
+        .status-used { color: #ff0000; font-weight: bold; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <div class="nav-back">
+        <a href="admin.html">⬅️ العودة للوحة الإدارة</a>
+    </div>
+    <div class="container">
+        <h1>🔑 قائمة أكواد المتجر (100 كود)</h1>
+        
+        <div class="stats">
+            <div class="stat-box">الإجمالي: <span id="total">100</span></div>
+            <div class="stat-box" style="color: #00ff00;">متاح: <span id="activeCount">0</span></div>
+            <div class="stat-box" style="color: #ff0000;">مستخدم: <span id="usedCount">0</span></div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>الرقم</th>
+                    <th>الكود</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="codesList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const adminUser = localStorage.getItem('user');
+        if(adminUser !== 'Meh') window.location.href = "index.html";
+
+        async function loadCodes() {
+            const res = await fetch('/admin/get-all-codes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ adminUser })
+            });
+            const codes = await res.json();
+            
+            let active = 0;
+            let used = 0;
+
+            document.getElementById('codesList').innerHTML = codes.map((c, index) => {
+                const isUsed = c.status === 'used';
+                if(isUsed) used++; else active++;
+
+                return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td style="font-family: monospace; font-size: 18px;">${c.code}</td>
+                    <td class="${isUsed ? 'status-used' : 'status-active'}">
+                        ${isUsed ? '❌ مستخدم' : '✅ متاح'}
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('activeCount').innerText = active;
+            document.getElementById('usedCount').innerText = used;
+        }
+        loadCodes();
+    </script>
+</body>
+</html>
